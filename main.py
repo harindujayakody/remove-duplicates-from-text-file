@@ -1,4 +1,6 @@
+import argparse
 import os
+import sys
 
 def clear_terminal():
     # Clear the terminal screen
@@ -7,12 +9,19 @@ def clear_terminal():
     else:  # For macOS/Linux
         os.system('clear')
 
-def remove_duplicates(input_file, output_file):
-    # Read the input file
-    with open(input_file, 'r') as file:
+def remove_duplicates(input_file, output_file, sort_lines=True, encoding='utf-8'):
+    """
+    Remove duplicate lines from input_file and save unique lines to output_file.
+
+    Returns:
+        tuple: (duplicate_count, unique_count)
+    """
+    if not os.path.exists(input_file):
+        raise FileNotFoundError(f"Input file not found: {input_file}")
+
+    with open(input_file, 'r', encoding=encoding, errors='replace') as file:
         lines = file.readlines()
 
-    # Track the count of duplicate lines
     seen = set()
     unique_lines = []
     duplicate_count = 0
@@ -23,34 +32,80 @@ def remove_duplicates(input_file, output_file):
         else:
             seen.add(line)
             unique_lines.append(line)
-    
-    # Sort the unique lines in ascending order
-    unique_lines.sort()
 
-    # Write the sorted unique lines to the output file
-    with open(output_file, 'w') as file:
+    if sort_lines:
+        unique_lines.sort()
+
+    with open(output_file, 'w', encoding=encoding) as file:
         file.writelines(unique_lines)
 
-    # Return the count of duplicates and the count of unique lines
     return duplicate_count, len(unique_lines)
 
-# Specify the input file (replace 'input.txt' with your file name)
-input_file = 'input.txt'
+def parse_args(args=None):
+    parser = argparse.ArgumentParser(
+        description="Remove duplicate lines from a text file and sort unique lines."
+    )
+    parser.add_argument(
+        "-i", "--input",
+        dest="input_file",
+        default="input.txt",
+        help="Path to the input text file (default: input.txt)"
+    )
+    parser.add_argument(
+        "-o", "--output",
+        dest="output_file",
+        default="new.txt",
+        help="Path to the output cleaned text file (default: new.txt)"
+    )
+    parser.add_argument(
+        "--keep-order",
+        dest="sort_lines",
+        action="store_false",
+        help="Preserve original order instead of sorting lines alphabetically"
+    )
+    parser.add_argument(
+        "--no-clear",
+        dest="clear_screen",
+        action="store_false",
+        help="Do not clear the terminal before printing report"
+    )
+    parser.add_argument(
+        "--encoding",
+        default="utf-8",
+        help="File encoding (default: utf-8)"
+    )
+    return parser.parse_args(args)
 
-# Specify the output file
-output_file = 'new.txt'
+def main():
+    args = parse_args()
 
-# Clear the terminal screen
-clear_terminal()
+    if not os.path.exists(args.input_file):
+        print(f"\033[31mError: Input file '{args.input_file}' not found.\033[0m", file=sys.stderr)
+        print("Please provide a valid input file via -i / --input or ensure 'input.txt' exists.", file=sys.stderr)
+        sys.exit(1)
 
-# Call the function to remove duplicates
-duplicate_count, unique_count = remove_duplicates(input_file, output_file)
+    try:
+        duplicate_count, unique_count = remove_duplicates(
+            args.input_file,
+            args.output_file,
+            sort_lines=args.sort_lines,
+            encoding=args.encoding
+        )
+    except Exception as e:
+        print(f"\033[31mError processing file: {e}\033[0m", file=sys.stderr)
+        sys.exit(1)
 
-# Beautiful output to the terminal
-print("\033[1m" + "Duplication Removal Report" + "\033[0m")  # Bold title
-print("-" * 30)
-print(f"Total Lines Processed: \033[32m{duplicate_count + unique_count}\033[0m")  # Green for total lines
-print(f"Unique Lines: \033[34m{unique_count}\033[0m")  # Blue for unique count
-print(f"Duplicate Lines: \033[31m{duplicate_count}\033[0m")  # Red for duplicate count
-print("-" * 30)
-print(f"Corrected file saved as \033[33m{output_file}\033[0m.")  # Yellow for file path
+    if args.clear_screen:
+        clear_terminal()
+
+    # Beautiful output to the terminal
+    print("\033[1m" + "Duplication Removal Report" + "\033[0m")  # Bold title
+    print("-" * 30)
+    print(f"Total Lines Processed: \033[32m{duplicate_count + unique_count}\033[0m")  # Green for total lines
+    print(f"Unique Lines: \033[34m{unique_count}\033[0m")  # Blue for unique count
+    print(f"Duplicate Lines: \033[31m{duplicate_count}\033[0m")  # Red for duplicate count
+    print("-" * 30)
+    print(f"Corrected file saved as \033[33m{args.output_file}\033[0m.")  # Yellow for file path
+
+if __name__ == '__main__':
+    main()
