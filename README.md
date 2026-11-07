@@ -10,10 +10,20 @@ This Python program reads a text file, removes duplicate lines, and saves the cl
 ## Usage
 Running the Script
 Ensure your input file (e.g., input.txt) is in the same directory as the script.
-Save the cleaned content to a new file called new.txt.
+By default the cleaned content is saved to a new file called new.txt.
 
 Execute the Python script with:
-python remove_duplicates.py
+python main.py
+
+Pass a different input file, or choose the output file with `-o`:
+
+```bash
+python main.py my-file.txt
+python main.py my-file.txt -o cleaned.txt
+python main.py --help
+```
+
+If the input file does not exist, the script prints an error and exits instead of crashing.
 
 ## Installation
 
@@ -26,3 +36,8 @@ To use the script, follow these steps:
 git clone https://github.com/harindujayakody/remove-duplicates-from-text-file.git
 cd remove-duplicates-from-text-file
 python main.py
+```
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 — see the LICENSE file for details.
